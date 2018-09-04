@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int long_time = -1;
 
     private int countdown = 0;
+    boolean back = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,12 +99,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         handler.sendEmptyMessageDelayed(0, 2000);
     }
 
+
     @Override
-    protected void onPause() {
-        super.onPause();
-        rxWaveHelper.cancel();
-        handler.removeMessages(0);
-        handler.removeMessages(1);
+    protected void onDestroy() {
+        if(!back) {
+            int shortNum = RxSPTool.getInt(this, "shortNum") + Integer.parseInt(time1.getText().toString());
+            int longNum = RxSPTool.getInt(this, "longNum") + Integer.parseInt(time2.getText().toString());
+
+            RxSPTool.putInt(this, "shortNum", shortNum);
+            RxSPTool.putInt(this, "longNum", longNum);
+
+            rxWaveHelper.cancel();
+            handler.removeMessages(0);
+            handler.removeMessages(1);
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -167,13 +178,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_HOME) {
+            back = true;
             int shortNum = RxSPTool.getInt(this, "shortNum") + Integer.parseInt(time1.getText().toString());
             int longNum = RxSPTool.getInt(this, "longNum") + Integer.parseInt(time2.getText().toString());
 
             RxSPTool.putInt(this,"shortNum", shortNum);
             RxSPTool.putInt(this,"longNum", longNum);
+
+            rxWaveHelper.cancel();
+            handler.removeMessages(0);
+            handler.removeMessages(1);
         }
+
         return super.onKeyDown(keyCode, event);
     }
 
